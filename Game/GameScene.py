@@ -177,8 +177,9 @@ class GameScene(Scene):
         self.__grunt_sound = pygame.mixer.Sound(os.path.join('Assets', 'grunt.ogg'))
         self.__short_grunt_sound = pygame.mixer.Sound(os.path.join('Assets', 'grunt_short.ogg'))
         self.__eating_sound = pygame.mixer.Sound(os.path.join('Assets', 'eating.ogg'))
-        self.__key_state = [False, False]
+        self.__unscrunch_requested = False
         self.__background = pygame.image.load(os.path.join('Assets', 'background.png'))
+
 
     def reset(self):
         self.__player.rect.x = 300
@@ -205,7 +206,6 @@ class GameScene(Scene):
             if self.__is_entity_on_ground(cereal_box):
                 cereal_box.velocity.x = 0
 
-        unscrunch_requested = False
         # handle input
         for event in events:
             # handle clicking the X on the game window
@@ -220,6 +220,7 @@ class GameScene(Scene):
                     self.__player.velocity += GameScene.jump_vector
                     self.__grunt_sound.play(0)
                 elif event.key == pygame.K_s:
+                    self.__unscrunch_requested = False
                     self.__player.is_scrunched = True
                     self.__player.scrunch()
                 elif event.key == pygame.K_ESCAPE:
@@ -231,10 +232,9 @@ class GameScene(Scene):
                 elif event.key == pygame.K_d:
                     self.__player.moving_right = False
                 elif event.key == pygame.K_s:
-                    self.__player.is_scrunched = False
-                    unscrunch_requested = True
+                    self.__unscrunch_requested = True
 
-        if unscrunch_requested and not self.__player.is_scrunched:
+        if self.__unscrunch_requested and self.__player.is_scrunched:
             anticipated_position = self.__player.rect.copy()
             anticipated_position.y -= self.__player.scrunch_difference
             can_unscrunch = True
@@ -244,6 +244,7 @@ class GameScene(Scene):
                     break
             if can_unscrunch:
                 self.__player.unscrunch()
+                self.__player.is_scrunched = False
 
         if self.__player.moving_left:
             self.__player.velocity.x = -3
