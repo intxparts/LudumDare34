@@ -172,10 +172,19 @@ class GameScene(Scene):
     move_right_vector = Vector(3, 0)
     jump_vector = Vector(0, -4)
     platform_thickness = 6
+    platform_75_image = pygame.image.load(os.path.join('Assets', 'platform_75.png'))
+    platform_50_image = pygame.image.load(os.path.join('Assets', 'platform_50.png'))
+    platform_477_image = pygame.image.load(os.path.join('Assets', 'platform_477.png'))
+    platform_315_image = pygame.image.load(os.path.join('Assets', 'platform_315.png'))
+    cave_image = pygame.image.load(os.path.join('Assets', 'cave.png'))
+    cave_full_image = pygame.image.load(os.path.join('Assets', 'cave_full.png'))
 
     def __init__(self, screen_dimensions):
         super(GameScene, self).__init__(screen_dimensions)
         self.__player = Player(position=Vector(375, 0), velocity=Vector(0, 0))
+        soul_friend = Platform(Vector(500, 326), pygame.image.load(os.path.join('Assets', 'soul_friend_left56.png')), 'soul-friend')
+        breakable_door = Platform(Vector(285, 326), pygame.image.load(os.path.join('Assets', 'breakable_door.png')), 'breakable-door')
+        self.__platform_display_list = [soul_friend, breakable_door]
         self.__platforms = [Platform(Vector(700, 125), Platform.create_standard_image([75, GameScene.platform_thickness]), 'top-right'),
                             Platform(Vector(25, 525), Platform.create_standard_image([75, GameScene.platform_thickness]), 'bottom-left'),
                             Platform(Vector(125, 260), Platform.create_standard_image([50, GameScene.platform_thickness]), 'center-left'),
@@ -183,9 +192,9 @@ class GameScene(Scene):
                             Platform(Vector(275, 320), Platform.create_standard_image([315, GameScene.platform_thickness]), 'center-center'),
                             Platform(Vector(300, 326), Platform.create_standard_image([50, 15]), 'hang-down'),
                             Platform(Vector(375, 250), Platform.create_standard_image([75, GameScene.platform_thickness]), 'top-center'),
-                            Platform(Vector(285, 326), pygame.image.load(os.path.join('Assets', 'breakable_door.png')), 'breakable-door'),
                             Platform(Vector(575, 326), Platform.create_standard_image([10, 56]), 'back-wall'),
-                            Platform(Vector(500, 326), pygame.image.load(os.path.join('Assets', 'soul_friend_left56.png')), 'soul-friend')]
+                            breakable_door,
+                            soul_friend]
         self.__cereal_boxes = [Cereal(position=Vector(705, 93)),
                                Cereal(position=Vector(35, 493)),
                                Cereal(position=Vector(425, 344))]
@@ -195,6 +204,7 @@ class GameScene(Scene):
         self.__eating_sound = pygame.mixer.Sound(os.path.join('Assets', 'eating.ogg'))
         self.__unscrunch_requested = False
         self.__background = pygame.image.load(os.path.join('Assets', 'background.png'))
+        self.__cave_opened = False
 
     def __handle_player_off_screen(self):
         if self.__player.rect.x < 400:
@@ -333,6 +343,7 @@ class GameScene(Scene):
         for platform in self.__platforms:
             if GameScene.__check_entity_x_collision(self.__player, platform):
                 if platform.id == 'breakable-door' and self.__player.size > 1:
+                    self.__cave_opened = True
                     to_remove.append(platform)
 
             for cereal_box in self.__cereal_boxes:
@@ -348,6 +359,7 @@ class GameScene(Scene):
 
         for platform in to_remove:
             self.__platforms.remove(platform)
+            self.__platform_display_list.remove(platform)
 
     def __is_entity_on_ground(self, entity):
         entity_rect = entity.rect.copy()
@@ -363,8 +375,10 @@ class GameScene(Scene):
 
         display.blit(self.__background, (0, 0))
 
+        display.blit(GameScene.cave_image, (274, 315))
+
         # draw the platforms
-        for platform in self.__platforms:
+        for platform in self.__platform_display_list:
             display.blit(platform.image, (platform.rect.x, platform.rect.y))
 
         for cereal_box in self.__cereal_boxes:
@@ -372,6 +386,16 @@ class GameScene(Scene):
 
         # draw the player
         display.blit(self.__player.image, (self.__player.rect.x, self.__player.rect.y))
+
+        display.blit(GameScene.platform_75_image, (699, 122))
+        display.blit(GameScene.platform_75_image, (24, 522))
+        display.blit(GameScene.platform_75_image, (374, 247))
+        display.blit(GameScene.platform_50_image, (124, 256))
+        display.blit(GameScene.platform_315_image, (274, 315))
+        if not self.__cave_opened:
+            display.blit(GameScene.cave_full_image, (274, 315))
+
+        display.blit(GameScene.platform_477_image, (179, 375))
 
     def id(self):
         return 'game_scene'
