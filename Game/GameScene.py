@@ -62,8 +62,12 @@ class Player:
         self.__facing_right = True
         self.is_scrunched = False
 
+    @property
+    def size(self):
+        return self.__size_index
+
     def grow(self):
-        if self.__size_index < 5:
+        if self.__size_index < 4:
             self.__size_index += 1
 
     @property
@@ -145,34 +149,46 @@ class Platform:
         Holds the state of a basic platform object
     """
 
-    def __init__(self, position, dimensions):
-        self.__width = dimensions[0]
-        self.__height = dimensions[1]
-        self.image = pygame.Surface([self.__width, self.__height])
-        self.image.fill(color=(0, 255, 0))
+    def __init__(self, position, image, id):
+        self.image = image
         self.rect = self.image.get_rect()
         self.rect.x = position.x
         self.rect.y = position.y
+        self.__id = id
+
+    @property
+    def id(self):
+        return self.__id
+
+    @staticmethod
+    def create_standard_image(dimensions):
+        image = pygame.Surface(dimensions)
+        image.fill(color=(0, 255, 0))
+        return image
 
 
 class GameScene(Scene):
     move_left_vector = Vector(-3, 0)
     move_right_vector = Vector(3, 0)
     jump_vector = Vector(0, -4)
-    platform_thickness = 36
+    platform_thickness = 6
 
     def __init__(self, screen_dimensions):
         super(GameScene, self).__init__(screen_dimensions)
-        self.__player = Player(position=Vector(300, 0), velocity=Vector(0, 0))
-        self.__platforms = [Platform(position=Vector(300, 300), dimensions=[200, GameScene.platform_thickness]),
-                            Platform(position=Vector(515, 250), dimensions=[50, GameScene.platform_thickness]),
-                            Platform(position=Vector(350, 215), dimensions=[36, GameScene.platform_thickness]),
-                            Platform(position=Vector(50, 400), dimensions=[100, GameScene.platform_thickness]),
-                            Platform(position=Vector(100, 500), dimensions=[200, GameScene.platform_thickness])]
-        self.__cereal_boxes = [Cereal(position=Vector(515, 0)),
-                               Cereal(position=Vector(400, 0)),
-                               Cereal(position=Vector(100, 0)),
-                               Cereal(position=Vector(200, 0))]
+        self.__player = Player(position=Vector(375, 0), velocity=Vector(0, 0))
+        self.__platforms = [Platform(Vector(700, 125), Platform.create_standard_image([75, GameScene.platform_thickness]), 'top-right'),
+                            Platform(Vector(25, 525), Platform.create_standard_image([75, GameScene.platform_thickness]), 'bottom-left'),
+                            Platform(Vector(125, 260), Platform.create_standard_image([50, GameScene.platform_thickness]), 'center-left'),
+                            Platform(Vector(180, 382), Platform.create_standard_image([475, GameScene.platform_thickness]), 'bottom-center'),
+                            Platform(Vector(275, 320), Platform.create_standard_image([315, GameScene.platform_thickness]), 'center-center'),
+                            Platform(Vector(300, 326), Platform.create_standard_image([50, 15]), 'hang-down'),
+                            Platform(Vector(375, 250), Platform.create_standard_image([75, GameScene.platform_thickness]), 'top-center'),
+                            Platform(Vector(285, 326), pygame.image.load(os.path.join('Assets', 'breakable_door.png')), 'breakable-door'),
+                            Platform(Vector(575, 326), Platform.create_standard_image([10, 56]), 'back-wall'),
+                            Platform(Vector(500, 326), pygame.image.load(os.path.join('Assets', 'soul_friend_left56.png')), 'soul-friend')]
+        self.__cereal_boxes = [Cereal(position=Vector(705, 93)),
+                               Cereal(position=Vector(35, 493)),
+                               Cereal(position=Vector(425, 344))]
         # [K_a, K_d] - this holds the state of whether the key is pressed or not
         self.__grunt_sound = pygame.mixer.Sound(os.path.join('Assets', 'grunt.ogg'))
         self.__short_grunt_sound = pygame.mixer.Sound(os.path.join('Assets', 'grunt_short.ogg'))
@@ -180,6 +196,13 @@ class GameScene(Scene):
         self.__unscrunch_requested = False
         self.__background = pygame.image.load(os.path.join('Assets', 'background.png'))
 
+    def __handle_player_off_screen(self):
+        if self.__player.rect.x < 400:
+            self.__player.rect.x += 400
+        else:
+            self.__player.rect.x -= 400
+        self.__player.rect.y = 0
+        self.__player.on_ground = False
 
     def reset(self):
         self.__player.rect.x = 300
@@ -250,13 +273,12 @@ class GameScene(Scene):
             self.__player.velocity.x = -3
         if self.__player.moving_right:
             self.__player.velocity.x = 3
-
         self.__apply_gravity()
         self.__handle_platform_collisions()
         self.__handle_entity_collisions()
 
         if self.__player.rect.left < 0 or self.__player.rect.right > self.screen_width or self.__player.rect.top > self.screen_height:
-            self.reset()
+            self.__handle_player_off_screen()
 
         self.__player.update()
 
@@ -284,6 +306,8 @@ class GameScene(Scene):
                 entity.rect.left = platform.rect.right
 
             entity.velocity.x = 0
+            return True
+        return False
 
     @staticmethod
     def __check_entity_y_collision(entity, platform):
@@ -298,13 +322,19 @@ class GameScene(Scene):
                 entity.rect.bottom = platform.rect.top
 
             entity.velocity.y = 0
+            return True
+        return False
 
     def __handle_platform_collisions(self):
         for cereal_box in self.__cereal_boxes:
             cereal_box.rect.x += cereal_box.velocity.x
         self.__player.rect.x += self.__player.velocity.x
+        to_remove = []
         for platform in self.__platforms:
-            GameScene.__check_entity_x_collision(self.__player, platform)
+            if GameScene.__check_entity_x_collision(self.__player, platform):
+                if platform.id == 'breakable-door' and self.__player.size > 1:
+                    to_remove.append(platform)
+
             for cereal_box in self.__cereal_boxes:
                 GameScene.__check_entity_x_collision(cereal_box, platform)
 
@@ -315,6 +345,9 @@ class GameScene(Scene):
             GameScene.__check_entity_y_collision(self.__player, platform)
             for cereal_box in self.__cereal_boxes:
                 GameScene.__check_entity_y_collision(cereal_box, platform)
+
+        for platform in to_remove:
+            self.__platforms.remove(platform)
 
     def __is_entity_on_ground(self, entity):
         entity_rect = entity.rect.copy()

@@ -1,31 +1,49 @@
-Our story begins with a soul.
-The soul did not remember how it got here. 
+Our story begins with you, a soul.
+you dio not remember how you got here.
 This is expected as the mind dies with the body. 
 There are exceptions of course. Tesla was such an interesting man, soul.
 
-Anyways, judging from the looks of this souls' aura it is probably best that we don't know about its past life.
+Anyways, judging from the looks of you it is probably best that we don't know about your past life.
 What horrid things you must have done. 
 You must have been a double dipper. 
 Yes, I can see it now.
-Not only did you forget to wash your hands in the restroom and immediately proceed to grab a carrot from the party bowl. But you returned your half eaten carrot deep into the ranch bowl....
+Not only did you forget to wash your hands in the restroom and immediately proceed to grab a carrot from the party bowl. 
+But you returned your half eaten carrot deep into the ranch bowl....
 
 You know what, this isn't the best we can do. 
 This story can be told much better if you go stand on the top right platform.
-You should consider this a great opportunity to finally start taking the high road.
+Just don't eat my delicious toasties cereal.
+Look at it this way, this is a great opportunity to finally start taking the high road.
 
-*Event: Player complies within 30 seconds
-- Complies:  - I like your enthusiasm! 
-				  - You weren't smart enough to stay on the street curb during rush hour, but you sure can handle jumping to platforms in purgatory. You should be proud!
-				  
-- Does not comply:
-	- Is this how it is going to be? 
-	- We have all of eternity to tell this story so maybe we should start trusting one another.
+- Nice work my good chum! 
 
 
-*Event: Player jumps into the abyss below.
 
-Excuse me, but that's rather impolite. 
-I'm trying to tell a story about you.
+*Event: Player jumps into the abyss below. While narrator is talking.
 
-I know you have a hard time staying alive.
-Fortunately you're here in purgatory where you can't die or leave in any sense.
+Excuse me, are you even listening?
+I'm trying to tell a story about you
+
+
+* Event : Player jumps into the abyss below on their own.
+
+Now obviously you had a hard time staying alive in life, but fortunately for you my good chum, you can't die in this realm.
+
+* Event : Eat the first cereal 
+
+What are you eating? Are those my delicious toasties?!
+What did I explicitly tell you to not do?!
+
+- after jumping down - open up a new passage
+- my shelter!? What have you done!?
+you are ruining everything!
+
+* Event: come down the passage
+
+no don't come in here!
+great, you just had to eat my toasties.
+Now we're both stuck here.
+*sighs*
+*clicks tongue*
+....
+you want to play go fish?
