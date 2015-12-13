@@ -191,7 +191,7 @@ class GameScene(Scene):
                             Platform(Vector(180, 382), Platform.create_standard_image([475, GameScene.platform_thickness]), 'bottom-center'),
                             Platform(Vector(275, 320), Platform.create_standard_image([315, GameScene.platform_thickness]), 'center-center'),
                             Platform(Vector(300, 326), Platform.create_standard_image([50, 15]), 'hang-down'),
-                            Platform(Vector(375, 250), Platform.create_standard_image([75, GameScene.platform_thickness]), 'top-center'),
+                            Platform(Vector(375, 270), Platform.create_standard_image([75, GameScene.platform_thickness]), 'top-center'),
                             Platform(Vector(575, 326), Platform.create_standard_image([10, 56]), 'back-wall'),
                             breakable_door,
                             soul_friend]
@@ -202,6 +202,7 @@ class GameScene(Scene):
         self.__grunt_sound = pygame.mixer.Sound(os.path.join('Assets', 'grunt.ogg'))
         self.__short_grunt_sound = pygame.mixer.Sound(os.path.join('Assets', 'grunt_short.ogg'))
         self.__eating_sound = pygame.mixer.Sound(os.path.join('Assets', 'eating.ogg'))
+        self.__wall_collapse_sound = pygame.mixer.Sound(os.path.join('Assets', 'wall_collapse.ogg'))
         self.__unscrunch_requested = False
         self.__background = pygame.image.load(os.path.join('Assets', 'background.png'))
         self.__cave_opened = False
@@ -344,6 +345,7 @@ class GameScene(Scene):
             if GameScene.__check_entity_x_collision(self.__player, platform):
                 if platform.id == 'breakable-door' and self.__player.size > 1:
                     self.__cave_opened = True
+                    self.__wall_collapse_sound.play(0)
                     to_remove.append(platform)
 
             for cereal_box in self.__cereal_boxes:
@@ -389,7 +391,7 @@ class GameScene(Scene):
 
         display.blit(GameScene.platform_75_image, (699, 122))
         display.blit(GameScene.platform_75_image, (24, 522))
-        display.blit(GameScene.platform_75_image, (374, 247))
+        display.blit(GameScene.platform_75_image, (374, 267))
         display.blit(GameScene.platform_50_image, (124, 256))
         display.blit(GameScene.platform_315_image, (274, 315))
         if not self.__cave_opened:
