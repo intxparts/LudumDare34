@@ -14,3 +14,7 @@ class DemoGame(Game):
     @property
     def screen_width(self):
         return super(DemoGame, self).screen_width
+
+    def run(self):
+        self._current_scene.reset()
+        super(DemoGame, self).run()

@@ -8,11 +8,16 @@ class Cereal:
 
     box_32 = pygame.image.load(os.path.join('Assets', 'cereal32.png'))
 
-    def __init__(self, position):
+    def __init__(self, position, id):
         self.__size = 32
         self.image = Cereal.box_32
         self.rect = pygame.Rect((position.x, position.y), (self.__size, self.__size))
         self.velocity = Vector(0, 0)
+        self.__id = id
+
+    @property
+    def id(self):
+        return self.__id
 
 
 class Player:
@@ -195,9 +200,10 @@ class GameScene(Scene):
                             Platform(Vector(575, 326), Platform.create_standard_image([10, 56]), 'back-wall'),
                             breakable_door,
                             soul_friend]
-        self.__cereal_boxes = [Cereal(position=Vector(705, 93)),
-                               Cereal(position=Vector(35, 493)),
-                               Cereal(position=Vector(425, 344))]
+        self.__top_right_toasties = Cereal(position=Vector(705, 0), id='top-right')
+        self.__bottom_left_toasties = Cereal(position=Vector(25, 0), id='bottom-left')
+        self.__cave_toasties = Cereal(position=Vector(425, 344), id='cave')
+        self.__cereal_boxes = [self.__cave_toasties]
         # [K_a, K_d] - this holds the state of whether the key is pressed or not
         self.__grunt_sound = pygame.mixer.Sound(os.path.join('Assets', 'grunt.ogg'))
         self.__short_grunt_sound = pygame.mixer.Sound(os.path.join('Assets', 'grunt_short.ogg'))
@@ -206,8 +212,11 @@ class GameScene(Scene):
         self.__unscrunch_requested = False
         self.__background = pygame.image.load(os.path.join('Assets', 'background.png'))
         self.__cave_opened = False
+        self.__first_time_landed_on_platform = False
+
 
     def __handle_player_off_screen(self):
+        self.__player_fallen_off_world = True
         if self.__player.rect.x < 400:
             self.__player.rect.x += 400
         else:
@@ -216,7 +225,9 @@ class GameScene(Scene):
         self.__player.on_ground = False
 
     def reset(self):
-        self.__player.rect.x = 300
+        pygame.mixer.music.load(os.path.join('Assets', 'intro.ogg'))
+        pygame.mixer.music.play(0)
+        self.__player.rect.x = 375
         self.__player.rect.y = 0
         self.__player.on_ground = False
 
@@ -295,14 +306,27 @@ class GameScene(Scene):
 
     def __handle_entity_collisions(self):
         to_remove = []
+        spawn_next_toasties = False
         for cereal_box in self.__cereal_boxes:
             if self.__player.rect.colliderect(cereal_box.rect):
+                if cereal_box.id == self.__bottom_left_toasties.id:
+                    spawn_next_toasties = True
+                if cereal_box.id == self.__cave_toasties.id:
+                    pygame.mixer.music.stop()
+                    pygame.mixer.music.load(os.path.join('Assets', 'escape.ogg'))
+                    pygame.mixer.music.play(0)
                 self.__eating_sound.play(0)
                 self.__player.grow()
                 self.__player.rect.y -= self.__player.growth_difference
                 to_remove.append(cereal_box)
         for cereal_box in to_remove:
             self.__cereal_boxes.remove(cereal_box)
+
+        if spawn_next_toasties:
+            pygame.mixer.music.stop()
+            pygame.mixer.music.load(os.path.join('Assets', 'toasties.ogg'))
+            pygame.mixer.music.play(0)
+            self.__cereal_boxes.append(self.__top_right_toasties)
 
     @staticmethod
     def __check_entity_x_collision(entity, platform):
@@ -347,7 +371,9 @@ class GameScene(Scene):
                     self.__cave_opened = True
                     self.__wall_collapse_sound.play(0)
                     to_remove.append(platform)
-
+                    pygame.mixer.music.stop()
+                    pygame.mixer.music.load(os.path.join('Assets', 'dont_come_in.ogg'))
+                    pygame.mixer.music.play(0)
             for cereal_box in self.__cereal_boxes:
                 GameScene.__check_entity_x_collision(cereal_box, platform)
 
@@ -355,7 +381,14 @@ class GameScene(Scene):
             cereal_box.rect.y += cereal_box.velocity.y
         self.__player.rect.y += self.__player.velocity.y
         for platform in self.__platforms:
-            GameScene.__check_entity_y_collision(self.__player, platform)
+            if GameScene.__check_entity_y_collision(self.__player, platform):
+                if platform.id == 'top-right' and self.__is_entity_on_ground(self.__player) and\
+                        not self.__first_time_landed_on_platform:
+                    self.__first_time_landed_on_platform = True
+                    pygame.mixer.music.stop()
+                    pygame.mixer.music.load(os.path.join('Assets', 'thinking.ogg'))
+                    pygame.mixer.music.play(0)
+                    self.__cereal_boxes.append(self.__bottom_left_toasties)
             for cereal_box in self.__cereal_boxes:
                 GameScene.__check_entity_y_collision(cereal_box, platform)
 
